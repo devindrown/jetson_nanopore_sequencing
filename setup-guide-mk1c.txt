@@ -32,7 +32,7 @@ cd ./jetson_nanopore_sequencing
 wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy_5.0.16_linuxaarch64_cuda10.tar.gz
 # extract required packages
 tar -xzvf *_linuxaarch64_cuda10.tar.gz
-unzip ./libs/python3.7/h5py.zip 
+# unzip ./libs/python3.7/h5py.zip 
 
 
 # 2. full system update and upgrade
@@ -44,9 +44,9 @@ sudo apt upgrade
 # TODO - this is making assumptions about previously created partitions
 # NOTE: you may not require this step, it depends on your storage setup
 # 3. mount ssd (this should be properly done, place holder for now)
-sudo mkdir /xavier_ssd
-sudo mkdir /xavier_ssd/minknow
-sudo mount /dev/nvme0n1p1 /xavier_ssd/
+# sudo mkdir /xavier_ssd
+# sudo mkdir /xavier_ssd/minknow
+# sudo mount /dev/nvme0n1p1 /xavier_ssd/
 
 
 # 4. add nanopore repo to system and update
@@ -110,29 +110,21 @@ minimap2 --version
 # edit the app_conf file
 sudo /opt/ont/minknow/bin/config_editor --conf application \
   --filename /opt/ont/minknow/conf/app_conf \
-  --set guppy.server_executable="/usr/bin/guppy_basecall_server" \
+  --set guppy.server_config.server_executable="/usr/bin/guppy_basecall_server" \
   --set guppy.client_executable="/usr/bin/guppy_basecall_client" \
   --set guppy.barcoding_executable="/usr/bin/guppy_basecall_barcoder" \
   --set guppy.alignment_executable="/usr/bin/guppy_basecall_aligner" \
   --set guppy.minimap_executable="/usr/bin/minimap2" \
-  --set guppy.chunks_per_runner="64"
+  --set guppy.server_config.chunks_per_runner="64"
 # NOTE: you can adjust chunks_per_runner depending on you available GPU, the default is 48, we've found 64 to be 
 # a good spot for the Jetson Xavier NX
 # edit the user_conf to set a user define storage location (and log file location if desired)
-sudo /opt/ont/minknow/bin/config_editor --conf user \
-  --filename /opt/ont/minknow/conf/user_conf \
-  --set output_dirs.base="/data/minknow" \
-  --set output_dirs.logs="/data/minknow/log/minknow"
+# sudo /opt/ont/minknow/bin/config_editor --conf user \
+#  --filename /opt/ont/minknow/conf/user_conf \
+#  --set output_dirs.base="/data/minknow" \
+#  --set output_dirs.logs="/data/minknow/log/minknow"
 
 
-# TODO: remove this step as no longer required
-# NOTE: this step is no longer required with latest mk1c builds - skip to the next step.
-# 8. install libhdf5-dev and copy across pre-compiled h5py (after removing old version)
-# move back to git repo dir 
-#cd ~/jetson_nanopore_sequencing
-#sudo apt install libhdf5-dev
-#sudo rm -rf /opt/ont/minknow/ont-python/lib/python3.7/site-packages/h5py/
-#sudo cp -r libs/python3.7/h5py/ /opt/ont/minknow/ont-python/lib/python3.7/site-packages/
 
 
 # 9. prevent boot into MinKNOW UI
@@ -174,11 +166,11 @@ service minknow status
 # can check that the services are running as root with htop
 # WARNING: with recent releases of MinKNOW there have been issues with directory permissions, and the Mk1b device not being detected
 # a quick and dirty fix for this is to change the user and group from 'minknow' to 'root'. If you have these issues you can do run the below:
-sudo sed -i -e 's/User=.*/User=root/g' -e 's/Group=.*/Group=root/g' /lib/systemd/system/minknow.service
+# sudo sed -i -e 's/User=.*/User=root/g' -e 's/Group=.*/Group=root/g' /lib/systemd/system/minknow.service
 # if you ever want to set this back to minknow that's easy as well:
-sudo sed -i -e 's/User=.*/User=minknow/g' -e 's/Group=.*/Group=minknow/g' /lib/systemd/system/minknow.service
+# sudo sed -i -e 's/User=.*/User=minknow/g' -e 's/Group=.*/Group=minknow/g' /lib/systemd/system/minknow.service
 # just remember to always restart the service after modifying any of these files
-#
+# RESTART REQUIRED
 # copy guppyd.service for systemd and check it's running
 sudo cp guppyd.service /lib/systemd/system/
 sudo systemctl restart guppyd.service
@@ -192,7 +184,7 @@ systemctl status guppyd.service
 # 13. Initialise attached MinIONs
 # we have found that sometimes the MinION Mk1b isn't appearing/available in the MinKNOW UI
 # running the below should load the correct firmware and initialise the device
-sudo /opt/ont/minknow/bin/minion_ctl init
+# sudo /opt/ont/minknow/bin/minion_ctl init
 
 # 14. you may require a system reboot at this stage. This is not always required, but for some people it sometimes fixes "niggles".
 # TODO - confirm if this is required. I don't believe this to be required, but as a final hail mary it could be an option.
